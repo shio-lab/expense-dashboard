@@ -4,24 +4,21 @@
 
 | 項目 | 内容 |
 |---|---|
-| テーブル物理名 | `transactions` |
+| テーブル物理名 | `expense` |
 | テーブル論理名 | 家計簿取引 |
 | 概要 | 日々の収支データを1件1行で管理する |
-| 作成日 | 2026-08-11 |
-| 更新日 | 2026-08-11 |
+| 作成日 | 2026-08-12 |
+| 更新日 | 2026-08-12 |
 
 ## カラム定義
 
 | No | 物理名 | 論理名 | データ型 | 桁数/長さ | NULL許可 | PK | FK参照先 | デフォルト値 | 備考 |
 |---|---|---|---|---|---|---|---|---|---|
 | 1 | id | 取引ID | INTEGER | - | NOT NULL | ○ | - | AUTOINCREMENT | 主キー |
-| 2 | transaction_date | 取引日 | DATE | - | NOT NULL | - | - | - | YYYY-MM-DD形式 |
+| 2 | transaction_date | 日付 | DATE | - | NOT NULL | - | - | - | YYYY-MM-DD形式 |
 | 3 | category | カテゴリ | TEXT | 50 | NOT NULL | - | categories.name | - | 例: 食費, 交通費 |
-| 4 | amount | 金額 | INTEGER | - | NOT NULL | - | - | - | 円単位。支出はマイナス等、符号ルールを別途決める |
-| 5 | payment_method | 支払方法 | TEXT | 30 | NULL許可 | - | - | NULL | 例: 現金, クレジットカード |
-| 6 | memo | メモ | TEXT | 200 | NULL許可 | - | - | NULL | 自由記述 |
-| 7 | created_at | 登録日時 | TIMESTAMP | - | NOT NULL | - | - | CURRENT_TIMESTAMP | レコード作成時刻（自動） |
-| 8 | updated_at | 更新日時 | TIMESTAMP | - | NULL許可 | - | - | NULL | 編集時に更新（未編集ならNULL） |
+| 4 | amount | 支出 | INTEGER | - | NOT NULL | - | - | - | 円単位。|
+| 5 | memo | 備考 | TEXT | 200 | NULL許可 | - | - | NULL | 自由記述 |
 
 ## インデックス
 
