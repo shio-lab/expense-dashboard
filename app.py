@@ -1,23 +1,40 @@
 import streamlit as st
 import pandas as pd
 import sqlite3
+from datetime import date
+from db_utils import get_expense_by_month, insert_expense, get_expense_df, get_payroll_monthly_df, get_payroll_bonus_df
 
 
-#DB取得
-def get_expense_df(db_path: str = "expense.db") -> pd.DataFrame:
-    with sqlite3.connect(db_path) as conn:
-        return  pd.read_sql("select * from expense", conn, parse_dates = ["expense_date"])
 
-def get_payroll_monthly_df(db_path: str = "expense.db") -> pd.DataFrame:
-    with sqlite3.connect(db_path) as conn:
-        return  pd.read_sql("select * from payroll_monthly", conn, parse_dates = ["payment_date"])
+st.title('Moneybook')
 
-def get_payroll_bonus_df(db_path: str = "expense.db") -> pd.DataFrame:
-    with sqlite3.connect(db_path) as conn:
-        return  pd.read_sql("select * from payroll_bonus", conn, parse_dates = ["payment_date"])
+#
+col1, col2 = st.columns(2)
+with col1:
+    year = st.selectbox("年", options = range(2020, date.today().year + 1),
+                        index = date.today().year - 2020)
+
+with col2:
+    month = st.selectbox("月", options = range(1, 13),
+                         index = date.today().month - 1)
+
+with st.sidebar:
+
+    st.subheader("支出を追加")
+    with st.form("expense_form", clear_on_submit=True):
+        input_date = st.date_input("日付", value = date.today())
+        input_category = st.selectbox("カテゴリ", ["食費", "交通費", "娯楽", "光熱費", "通信費", "医療費", "教育費", "その他"])
+        input_amount = st.number_input("金額", min_value= 0, step=100)
+        input_memo = st.text_input("メモ")
+
+        submitted = st.form_submit_button("追加")
+
+        if submitted:
+            insert_expense(input_date, input_category, input_amount, input_memo)
+            st.success("追加しました！")
+            st.rerun()
 
 
-st.title('家計簿管理')
 st.subheader('給与明細（毎月）')
 payroll_monthly_df = get_payroll_monthly_df()
 st.write(payroll_monthly_df)
@@ -32,5 +49,4 @@ st.write(expense_df)
 
 
 
-if st.button('登録'):
-    st.write('登録完了！')
+
