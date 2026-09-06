@@ -35,11 +35,11 @@ with st.sidebar:
             st.rerun()
 
 
-st.subheader('給与明細（毎月）')
+st.subheader('給与明細')
 payroll_monthly_df = get_payroll_monthly_df()
 st.write(payroll_monthly_df)
 
-st.subheader('給与明細（ボーナス）')
+st.subheader('賞与明細')
 payroll_bonus_df = get_payroll_bonus_df()
 st.write(payroll_bonus_df)
 
