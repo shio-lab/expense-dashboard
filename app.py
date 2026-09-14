@@ -1,22 +1,19 @@
+"""app.py"""
 import streamlit as st
 import pandas as pd
 import sqlite3
 from datetime import date
-from db_utils import get_expense_by_month, insert_expense, get_expense_df, get_payroll_monthly_df, get_payroll_bonus_df
+from db_utils import (
+    get_expense_by_month,
+    insert_expense,
+     delete_expense,
+    get_payroll_monthly_by_month,
+    get_payroll_bonus_by_month
+)
 
 
 
 st.title('Moneybook')
-
-#
-col1, col2 = st.columns(2)
-with col1:
-    year = st.selectbox("年", options = range(2020, date.today().year + 1),
-                        index = date.today().year - 2020)
-
-with col2:
-    month = st.selectbox("月", options = range(1, 13),
-                         index = date.today().month - 1)
 
 with st.sidebar:
 
@@ -35,18 +32,96 @@ with st.sidebar:
             st.rerun()
 
 
-st.subheader('給与明細')
-payroll_monthly_df = get_payroll_monthly_df()
-st.write(payroll_monthly_df)
+col1, col2 = st.columns(2)
+with col1:
+    year = st.selectbox("年", options = range(2020, date.today().year + 1),
+                        index = date.today().year - 2020)
 
-st.subheader('賞与明細')
-payroll_bonus_df = get_payroll_bonus_df()
-st.write(payroll_bonus_df)
+with col2:
+    month = st.selectbox("月", options = range(1, 13),
+                         index = date.today().month - 1)
+
+
+
+st.subheader('給与明細')
+payroll_monthly_df = get_payroll_monthly_by_month(year, month)
+st.dataframe(
+    payroll_monthly_df,
+    use_container_width=True,
+    hide_index=True,
+    column_config={
+        "id":None,
+        "payment_date":"支給日",
+        "base_salary":"基本給",
+        "overtime_allowance":"時間外手当",
+        "other_allowance":"その他給与",
+        "rent_deduction":"家賃",
+        "employment_insurance":"雇用保険",
+        "employee_pension":"厚生年金",
+        "health_insurance_basic":"健康保険(基本)",
+        "health_insurance_special":"健康保険(特定)",
+        "child_support_contribution":"子ども・子育て支援金",
+        "income_tax":"所得税",
+        "resident_tax":"住民税",
+        "labor_union_fee":"労働組合費",
+        "memo":"備考"
+    },
+)
+
+
+payroll_bonus_df = get_payroll_bonus_by_month(year, month)
+
+if not payroll_bonus_df.empty:
+    st.subheader('賞与明細')
+    st.dataframe(
+        payroll_bonus_df,
+        use_container_width=True,
+        hide_index=True,
+        column_config={
+            "id":None,
+            "payment_date":"支給日",
+            "base_bonus":"基本賞与",
+            "employment_insurance":"雇用保険",
+            "employee_pension":"厚生年金",
+            "health_insurance_basic":"健康保険(基本)",
+            "health_insurance_special":"健康保険(特定)",
+            "child_support_contribution":"子ども・子育て支援金",
+            "income_tax":"所得税",
+            "memo":"備考"
+        },
+    )
+
 
 st.subheader('支出一覧')
-expense_df = get_expense_df()
-st.write(expense_df)
+
+df = get_expense_by_month(year, month)
+
+event = st.dataframe(
+    df,
+    use_container_width=True,
+    hide_index=True,
+    on_select="rerun",
+    selection_mode="single-row",
+    column_config={
+        "id": None,
+        "transaction_date": "日付",
+        "category": "カテゴリ",
+        "amount": "金額",
+        "memo": "メモ",
+    },
+)
 
 
 
+selected_rows = event.selection.rows
 
+if selected_rows:
+    selected_index = selected_rows[0]
+    selected_record = df.iloc[selected_index]
+
+    st.write(f"選択中: {selected_record['transaction_date'].date()} / {selected_record['category']} / {selected_record['amount']}円")
+
+    if st.button("このレコードを削除", type="primary"):
+        delete_expense(int(selected_record["id"]))
+        st.success("削除しました")
+        st.rerun()

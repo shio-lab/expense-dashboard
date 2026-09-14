@@ -1,3 +1,4 @@
+"""db_utils.py"""
 import pandas as pd
 import sqlite3
 from datetime import date
@@ -40,6 +41,36 @@ def get_expense_by_month(year: int, month: int) -> pd.DataFrame:
         )
     return df
 
+def get_payroll_monthly_by_month(year: int, month: int) -> pd.DataFrame:
+    """指定した年月の給与明細を取得"""
+    query = """
+        select * 
+        from payroll_monthly
+        where strftime('%Y', payment_date) = ?
+            and strftime('%m', payment_date) = ?
+        order by payment_date
+    """
+    with sqlite3.connect(DB_PATH) as conn:
+        df = pd.read_sql(
+            query, conn, params=[str(year), f"{month:02d}"], parse_dates=["payment_date"]
+        )
+    return df
+
+def get_payroll_bonus_by_month(year: int, month: int) -> pd.DataFrame:
+    """指定した年月の賞与明細を取得"""
+    query = """
+        select *
+        from payroll_bonus
+        where strftime('%Y', payment_date) = ?
+            and strftime('%m', payment_date) = ?
+        order by payment_date
+    """
+    with sqlite3.connect(DB_PATH) as conn:
+        df = pd.read_sql(
+            query, conn, params=[str(year), f"{month:02d}"], parse_dates=["payment_date"]
+        )
+    return df
+
 def insert_expense(transaction_date: date, category: str, amount: int, memo: str ="") -> None:
     """expenseテーブルに1件追加"""
     query = """
@@ -49,3 +80,11 @@ def insert_expense(transaction_date: date, category: str, amount: int, memo: str
     with sqlite3.connect(DB_PATH) as conn:
         conn.execute(query, (transaction_date.isoformat(), category, amount, memo))
         conn.commit()
+
+def delete_expense(record_id: int) -> None:
+    """expenseテーブルから1件削除"""
+    query = "delete from expense where id = ?"
+    with sqlite3.connect(DB_PATH) as conn:
+        conn.execute(query, (record_id,))
+        conn.commit()
+    
