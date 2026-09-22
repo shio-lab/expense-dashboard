@@ -20,7 +20,7 @@ with st.sidebar:
     st.subheader("支出を追加")
     with st.form("expense_form", clear_on_submit=True):
         input_date = st.date_input("日付", value = date.today())
-        input_category = st.selectbox("カテゴリ", ["食費", "交通費", "娯楽", "光熱費", "通信費", "医療費", "教育費", "その他"])
+        input_category = st.selectbox("カテゴリ", ["食費", "日用品", "ファッション", "交通費", "娯楽", "光熱費", "通信費", "医療費", "教育費", "サブスクリプション","その他"])
         input_amount = st.number_input("金額", min_value= 0, step=100)
         input_memo = st.text_input("メモ")
 
@@ -104,7 +104,10 @@ event = st.dataframe(
     selection_mode="single-row",
     column_config={
         "id": None,
-        "transaction_date": "日付",
+        "transaction_date": st.column_config.DateColumn(
+            "日付",
+            format="YYYY-MM-DD",
+        ),
         "category": "カテゴリ",
         "amount": "金額",
         "memo": "メモ",
