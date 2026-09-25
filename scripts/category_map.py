@@ -1,3 +1,5 @@
+import pandas as pd
+
 category_map = {
     # --- 食費 ---
     "昼食代": "食費", "夕食代": "食費", "朝食代": "食費", "夕食": "食費", "朝食": "食費",
@@ -62,3 +64,46 @@ category_map = {
     "ヤマト運輸": "その他", "ニトリ": "その他", "切手": "その他",
 }
 
+
+monthly_column_map = {
+    "基本給": "base_salary",
+    "時間外手当": "overtime_allowance",
+    "その他給与": "other_allowance",
+    "家賃": "rent_deduction",
+    "雇用保険": "employment_insurance",
+    "厚生年金": "employee_pension",
+    "健康保険(基本)": "health_insurance_basic",
+    "健康保険(特定)": "health_insurance_special",
+    "子ども・子育て支援金": "child_support_contribution",
+    "所得税": "income_tax",
+    "住民税": "resident_tax",
+    "労働組合費": "labor_union_fee",
+    "試験受験料": "other_deduction",
+    "不足時間減額": "other_deduction",
+    "食堂利用料": "other_deduction",
+    "労働行事参加費": "other_deduction",
+}
+
+def map_record_to_schema(record, column_map):
+    """複数ラベルが同じ物理名に対応する場合は合算する"""
+    schema_row = {}
+    for label, value in record.items():
+        target = column_map.get(label)
+        if target is None:
+            continue
+        if pd.isna(value):
+            value = 0
+        schema_row[target] = schema_row.get(target, 0) + value
+    return schema_row
+
+
+# 賞与用のラベル→スキーマ物理名マッピング
+bonus_column_map = {
+    "基本賞与": "base_bonus",
+    "雇用保険": "employment_insurance",
+    "厚生年金": "employee_pension",
+    "健康保険(基本)": "health_insurance_basic",
+    "健康保険(特定)": "health_insurance_special",
+    "子ども・子育て支援金": "child_support_contribution",
+    "所得税": "income_tax",
+}

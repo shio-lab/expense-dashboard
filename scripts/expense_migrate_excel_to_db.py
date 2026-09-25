@@ -2,9 +2,10 @@ import sys
 from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parent.parent))
 
+import sqlite3
 import pandas as pd
-from db_utils import insert_expense
-from category_map import category_map
+from db_utils import insert_expense, insert_payroll_monthly
+from category_map import category_map, map_record_to_schema
 
 
 # Excelのパスを配列に格納
@@ -51,8 +52,9 @@ df_final["memo"] = ""
 
 # print(df_final.head(10))
 
-# 6. INSERT実行
-for _, row in df_final.iterrows():
-    insert_expense(row["transaction_date"], row["category"], int(row["amount"]), row["memo"])
+# # 6. INSERT実行
+# for _, row in df_final.iterrows():
+#     insert_expense(row["transaction_date"], row["category"], int(row["amount"]), row["memo"])
 
-print(f"{len(df_final)}件INSERTしました")
+# print(f"{len(df_final)}件INSERTしました")
+

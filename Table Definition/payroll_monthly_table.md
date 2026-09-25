@@ -28,7 +28,8 @@
 | 12 | income_tax | 所得税 | INTEGER | - | NOT NULL | - | - | 0 | 源泉徴収額。円単位 |
 | 13 | resident_tax | 住民税 | INTEGER | - | NOT NULL | - | - | 0 | 特別徴収額。円単位 |
 | 14 | labor_union_fee | 労働組合費 | INTEGER | - | NOT NULL | - | - | 0 | 円単位 |
-| 15 | memo | 備考 | TEXT | 200 | NULL許可 | - | - | NULL | 自由記述 |
+| 15 | other_deduction | その他控除 | INTEGER | - | NOT NULL | - | - | 0 | 円単位 |
+| 16 | memo | 備考 | TEXT | 200 | NULL許可 | - | - | NULL | 自由記述 |
 
 ## インデックス
 
