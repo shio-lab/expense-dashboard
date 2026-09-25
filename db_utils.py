@@ -83,7 +83,7 @@ def insert_expense(transaction_date: date, category: str, amount: int, memo: str
 
 def delete_expense(record_id: int) -> None:
     """expenseテーブルから1件削除"""
-    query = "DELETE FROM expense WHRER id = ?"
+    query = "DELETE FROM expense WHERE id = ?"
     with sqlite3.connect(DB_PATH) as conn:
         conn.execute(query, (record_id,))
         conn.commit()
