@@ -41,35 +41,35 @@ def get_expense_by_month(year: int, month: int) -> pd.DataFrame:
         )
     return df
 
-def get_payroll_monthly_by_month(year: int, month: int) -> pd.DataFrame:
-    """指定した年月の給与明細を取得"""
-    query = """
-        SELECT * 
-        FROM payroll_monthly
-        where strftime('%Y', payment_date) = ?
-            and strftime('%m', payment_date) = ?
-        order by payment_date
-    """
-    with sqlite3.connect(DB_PATH) as conn:
-        df = pd.read_sql(
-            query, conn, params=[str(year), f"{month:02d}"], parse_dates=["payment_date"]
-        )
-    return df
+# def get_payroll_monthly_by_month(year: int, month: int) -> pd.DataFrame:
+#     """指定した年月の給与明細を取得"""
+#     query = """
+#         SELECT * 
+#         FROM payroll_monthly
+#         where strftime('%Y', payment_date) = ?
+#             and strftime('%m', payment_date) = ?
+#         order by payment_date
+#     """
+#     with sqlite3.connect(DB_PATH) as conn:
+#         df = pd.read_sql(
+#             query, conn, params=[str(year), f"{month:02d}"], parse_dates=["payment_date"]
+#         )
+#     return df
 
-def get_payroll_bonus_by_month(year: int, month: int) -> pd.DataFrame:
-    """指定した年月の賞与明細を取得"""
-    query = """
-        SELECT *
-        FROM payroll_bonus
-        where strftime('%Y', payment_date) = ?
-            and strftime('%m', payment_date) = ?
-        order by payment_date
-    """
-    with sqlite3.connect(DB_PATH) as conn:
-        df = pd.read_sql(
-            query, conn, params=[str(year), f"{month:02d}"], parse_dates=["payment_date"]
-        )
-    return df
+# def get_payroll_bonus_by_month(year: int, month: int) -> pd.DataFrame:
+#     """指定した年月の賞与明細を取得"""
+#     query = """
+#         SELECT *
+#         FROM payroll_bonus
+#         where strftime('%Y', payment_date) = ?
+#             and strftime('%m', payment_date) = ?
+#         order by payment_date
+#     """
+#     with sqlite3.connect(DB_PATH) as conn:
+#         df = pd.read_sql(
+#             query, conn, params=[str(year), f"{month:02d}"], parse_dates=["payment_date"]
+#         )
+#     return df
 
 def insert_expense(transaction_date: date, category: str, amount: int, memo: str ="") -> None:
     """expenseテーブルに1件追加"""
@@ -174,11 +174,11 @@ def insert_payroll_bonus(
 
 
 def get_payroll_monthly_by_year(year: int) -> pd.DataFrame:
-    """指定した年度の給与明細(毎月)を月ごとに取得"""
+    """指定した年の給与明細（毎月、支給合計・控除合計・差引支給額込み）を取得"""
     query = """
-        SELECT * 
-        FROM payroll_monthly
-        WHRER strftime('%Y', payment_date) = ?
+        SELECT *
+        FROM payroll_monthly_view
+        WHERE strftime('%Y', payment_date) = ?
         ORDER BY payment_date
     """
     with sqlite3.connect(DB_PATH) as conn:
@@ -186,6 +186,52 @@ def get_payroll_monthly_by_year(year: int) -> pd.DataFrame:
             query, conn, params=[str(year)], parse_dates=["payment_date"]
         )
     return df
+
+def get_payroll_monthly_by_month(year: int, month: int) -> pd.DataFrame:
+    """指定した年月の給与明細（毎月、支給合計・控除合計・差引支給額込み）を取得"""
+    query = """
+        select *
+        from payroll_monthly_view
+        where strftime('%Y', payment_date) = ?
+            and strftime('%m', payment_date) = ?
+        order by payment_date
+    """
+    with sqlite3.connect(DB_PATH) as conn:
+        df = pd.read_sql(
+            query, conn, params=[str(year), f"{month:02d}"], parse_dates=["payment_date"]
+        )
+    return df
+
+def get_payroll_bonus_by_year(year: int) -> pd.DataFrame:
+    """指定した年のボーナス明細（支給合計・控除合計・差引支給額込み）を取得"""
+    query = """
+        select *
+        from payroll_bonus_view
+        where strftime('%Y', payment_date) = ?
+        order by payment_date
+    """
+    with sqlite3.connect(DB_PATH) as conn:
+        df = pd.read_sql(
+            query, conn, params=[str(year)], parse_dates=["payment_date"]
+        )
+    return df
+
+
+def get_payroll_bonus_by_month(year: int, month: int) -> pd.DataFrame:
+    """指定した年月のボーナス明細（支給合計・控除合計・差引支給額込み）を取得"""
+    query = """
+        select *
+        from payroll_bonus_view
+        where strftime('%Y', payment_date) = ?
+            and strftime('%m', payment_date) = ?
+        order by payment_date
+    """
+    with sqlite3.connect(DB_PATH) as conn:
+        df = pd.read_sql(
+            query, conn, params=[str(year), f"{month:02d}"], parse_dates=["payment_date"]
+        )
+    return df
+
 
 def get_expense_by_year_ground_by_category(year: int) -> pd.DataFrame:
     """指定した年度のカテゴリ別支出合計を取得"""

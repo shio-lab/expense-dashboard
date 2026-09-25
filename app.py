@@ -12,7 +12,8 @@ from db_utils import (
     insert_payroll_monthly,
     insert_payroll_bonus,
     get_payroll_monthly_by_year,
-    get_expense_by_year_ground_by_category
+    get_expense_by_year_ground_by_category,
+    get_payroll_bonus_by_year,
 )
 
 
@@ -60,6 +61,9 @@ with tab_list:
             "payment_date":st.column_config.DateColumn(
                 "支給日",
                 format="YYYY-MM"),
+            "gross_total": "支給合計",
+            "deduction_total": "控除合計",
+            "net_total": "差引支給額",
             "base_salary":"基本給",
             "overtime_allowance":"時間外手当",
             "other_allowance":"その他給与",
@@ -91,6 +95,9 @@ with tab_list:
             "payment_date":st.column_config.DateColumn(
                 "支給日",
                 format="YYYY-MM"),
+                "gross_total": "支給合計",
+                "deduction_total": "控除合計",
+                "net_total": "差引支給額",
                 "base_bonus":"基本賞与",
                 "employment_insurance":"雇用保険",
                 "employee_pension":"厚生年金",
@@ -222,22 +229,49 @@ with tab_list:
 
 with tab_graph:
     st.subheader(f"{year}年 月収推移")
-    payroll_year_df = get_payroll_monthly_by_year(year)
+    payroll_monthly_year_df = get_payroll_monthly_by_year(year)
+    payroll_bonus_year_df = get_payroll_bonus_by_year(year)
 
-    if not payroll_year_df.empty:
-        payroll_year_df["月"] = payroll_year_df["payroll_date"].dt.strftime("%m月")
-        st.line_chart(
-            payroll_year_df.set_index("月")["base_salary"],
-        )
+    monthly_gross_total = payroll_monthly_year_df["gross_total"].sum() if not payroll_monthly_year_df.empty else 0
+    bonus_gross_total = payroll_bonus_year_df["gross_total"].sum() if not payroll_bonus_year_df.empty else 0
+    annual_income = monthly_gross_total + bonus_gross_total
+    st.metric(f"{year}年 年収", f"{annual_income:,.0f}円")
+
+    if not payroll_monthly_year_df.empty:
+            # 月ごとの月収データを土台にする
+            chart_df = payroll_monthly_year_df[["payment_date", "gross_total"]].copy()
+            chart_df["月"] = chart_df["payment_date"].dt.strftime("%m月")
+            chart_df = chart_df.rename(columns={"gross_total": "月収のみ"})
+
+            # 賞与を月ごとに合計（同月に複数回支給があるケースに対応）
+            if not payroll_bonus_year_df.empty:
+                bonus_by_month = (
+                    payroll_bonus_year_df
+                    .assign(月=payroll_bonus_year_df["payment_date"].dt.strftime("%m月"))
+                    .groupby("月")["gross_total"]
+                    .sum()
+                )
+            else:
+                bonus_by_month = pd.Series(dtype="float64")
+
+            # 月収に賞与を合算した「賞与込み」列を作成
+            chart_df["賞与込み"] = chart_df.apply(
+                lambda row: row["月収のみ"] + bonus_by_month.get(row["月"], 0),
+                axis=1,
+            )
+
+            st.line_chart(
+                chart_df.set_index("月")[["月収のみ", "賞与込み"]]
+            )
     else:
-        st.info("この年度は給与データはありません")
+            st.info("この年の給与データがありません")
 
     st.subheader(f"{year}年 カテゴリ別支出")
     category_df = get_expense_by_year_ground_by_category(year)
 
     if not category_df.empty:
-        st.bar_chart(
-            category_df.set_index("category")["total_amount"],
-        )
+            st.bar_chart(
+                category_df.set_index("category")["total_amount"],
+            )
     else:
-        st.info("この年度の支出データはありません")
+            st.info("この年度の支出データはありません")
